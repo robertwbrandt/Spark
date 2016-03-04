@@ -12,6 +12,8 @@
 #     PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 #
 
+Set-Variable domain -option Constant -value "i"
+
 # This function is used to either Replace or Add configuration values to the Spark 
 # configuration files
 function ReplaceOrAdd ($text, $file)
@@ -24,9 +26,15 @@ function ReplaceOrAdd ($text, $file)
 }
 
 # Check to see if the user have logged into the I domain (i.opw.ie)
-if ( ${env:USERDOMAIN} -eq "i" ) {
+if ( ${env:USERDOMAIN} -eq $domain ) {
     # We only want one instance of Spark running at a time.
     Stop-Process -name "spark" -Force
+
+    if (${env:ProgramFiles(x86)}) {
+        $programfiles = ${env:ProgramFiles(x86)}
+    } else {
+        $programfiles = ${env:ProgramFiles}
+    }
 
     # Find the spark configuration file for this user.
     $file = "${env:APPDATA}\Spark\spark.properties"
@@ -46,6 +54,6 @@ if ( ${env:USERDOMAIN} -eq "i" ) {
     #ReplaceOrAdd -text "ssoMethod=dns" -file "$file"
     
     # Start the Spark program
-    Start-Process -FilePath "${env:ProgramFiles(x86)}\Spark\Spark.exe" -WorkingDirectory "${env:ProgramFiles(x86)}\Spark"
+    Start-Process -FilePath "$programfiles\Spark\Spark.exe" -WorkingDirectory "$programfiles\Spark"
     
 } else { "Not in the I domain" }
